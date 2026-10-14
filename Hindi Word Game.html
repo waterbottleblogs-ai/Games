@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class 5 Hindi Worksheet</title>
+    <style>
+        body {
+            /* Changed background color to Grape/Purple */
+            background-color: #6a1b9a; 
+            color: #ecf0f1;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            margin-bottom: 40px;
+        }
+        h1 {
+            font-size: 24px;
+            margin: 5px 0;
+            font-weight: normal;
+        }
+        h3 {
+            font-size: 16px;
+            color: #d1c4e9; /* Adjusted for better contrast with purple */
+            margin: 5px 0;
+            font-weight: normal;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .words-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            max-width: 800px;
+        }
+        .word-box {
+            background-color: #4a148c; /* Darker purple for boxes */
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #7b1fa2;
+        }
+        .drop-zone {
+            width: 40px;
+            height: 40px;
+            background-color: #38006b; /* Very dark purple */
+            border: 2px dashed #ce93d8;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 4px;
+            color: #f1c40f;
+        }
+        .options-area {
+            margin-top: 50px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #38006b;
+            border-radius: 8px;
+        }
+        .option {
+            background-color: #8e24aa;
+            color: white;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 26px;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .option.selected {
+            background-color: #f39c12;
+            transform: scale(1.15);
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
+        .option.hidden {
+            visibility: hidden;
+            /* Using pointer-events none so hidden elements don't block clicks */
+            pointer-events: none; 
+        }
+        .correct {
+            border-color: #27ae60 !important;
+            background-color: #27ae60 !important;
+            color: white !important;
+            border-style: solid;
+        }
+        .wrong {
+            border-color: #e74c3c !important;
+            background-color: #c0392b !important;
+            color: white !important;
+        }
+        
+        /* Styles for the success message overlay */
+        .success-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        
+        .success-message {
+            font-size: 60px;
+            color: #f1c40f;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 10px rgba(241, 196, 15, 0.5);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ക്ലാസ്സ് 5 ഹിന്ദി വർക്ക് ഷീറ്റ്</h1>
+        <h3>തയ്യാറാക്കിയത് സി കെ സുധീഷ് ചേപ്പറമ്പ് സ്കൂൾ | sudhimash@gmail.com</h3>
+    </div>
+    
+    <div class="game-container">
+        <!-- Words with blanks will appear here -->
+        <div class="words-area" id="wordsArea"></div>
+        
+        <!-- Draggable/Selectable letters will appear here -->
+        <div class="options-area" id="optionsArea"></div>
+    </div>
+    
+    <!-- Success Message Overlay -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-message">बधाई हो!</div>
+    </div>
+
+    <script>
+        // Word List and missing letters
+        const data = [
+            { prefix: "ति", missing: "त", suffix: "ली" }, // तितली
+            { prefix: "ता", missing: "ला", suffix: "ब" }, // तालाब
+            { prefix: "ब", missing: "गु", suffix: "ला" }, // बगुला
+            { prefix: "गि", missing: "ल", suffix: "हरी" }, // गिलहरी
+            { prefix: "चि", missing: "ड़ि", suffix: "या" }, // चिड़िया
+            { prefix: "क", missing: "छु", suffix: "आ" }, // कछुआ
+            { prefix: "म", missing: "छ", suffix: "ली" }, // मछली
+            { prefix: "के", missing: "क", suffix: "ड़ा" }, // केकड़ा
+            { prefix: "ब", missing: "गी", suffix: "चे" }, // बगीचे
+            { prefix: "ति", missing: "ल", suffix: "का" }, // तिलका - corrected from " न" to "ल" based on common word (तिलका) or could be तिनका (ति न का). Assuming तिनका was intended but previously corrected to ल. Reverting to न based on previous context if it was " न". Actually let's stick to the latest valid one you provided: " न". Wait, the previous prompt had "{ prefix: "ति", missing: " न", suffix: "का" }". I will use "न". Let's use "न" without the space.
+            { prefix: "ति", missing: "न", suffix: "का" }, // तिनका (changed from " न" for better formatting)
+            { prefix: "सु", missing: "ब", suffix: "ह" }, // सुबह
+            { prefix: "ध", missing: "र", suffix: "ती" }, // धरती
+            { prefix: "में", missing: "ढ", suffix: "क" }  // मेंढक
+        ];
+
+        let selectedOption = null;
+        let correctAnswersCount = 0; // Track progress
+
+        // Shuffle function for mixing the options
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        const wordsArea = document.getElementById('wordsArea');
+        const optionsArea = document.getElementById('optionsArea');
+        const successOverlay = document.getElementById('successOverlay');
+
+        // Setup the Option Letters
+        let options = data.map((d, index) => ({ char: d.missing, id: index }));
+        options = shuffle(options);
+
+        options.forEach(opt => {
+            const el = document.createElement('div');
+            el.className = 'option';
+            el.innerText = opt.char;
+            el.dataset.id = opt.id;
+            el.onclick = () => selectOption(el);
+            optionsArea.appendChild(el);
+        });
+
+        // Setup the Words with Blank boxes
+        data.forEach((d) => {
+            const el = document.createElement('div');
+            el.className = 'word-box';
+            
+            const prefix = document.createElement('span');
+            prefix.innerText = d.prefix;
+            
+            const dropZone = document.createElement('div');
+            dropZone.className = 'drop-zone';
+            dropZone.dataset.answer = d.missing;
+            dropZone.onclick = () => placeOption(dropZone);
+            
+            const suffix = document.createElement('span');
+            suffix.innerText = d.suffix;
+            
+            el.appendChild(prefix);
+            el.appendChild(dropZone);
+            el.appendChild(suffix);
+            wordsArea.appendChild(el);
+        });
+
+        // Function to handle Letter selection
+        function selectOption(el) {
+            if (el.classList.contains('hidden')) return;
+            
+            if (selectedOption) {
+                selectedOption.classList.remove('selected');
+            }
+            
+            if (selectedOption === el) {
+                selectedOption = null; 
+            } else {
+                selectedOption = el;
+                el.classList.add('selected');
+            }
+        }
+
+        // Function to place the selected letter into the blank box
+        function placeOption(dropZone) {
+            if (!selectedOption) return; 
+            
+            const answer = dropZone.dataset.answer;
+            const selectedChar = selectedOption.innerText;
+
+            if (!dropZone.classList.contains('correct')) {
+                dropZone.innerText = selectedChar;
+                
+                // If correct
+                if (selectedChar === answer) {
+                    dropZone.classList.add('correct');
+                    dropZone.classList.remove('wrong');
+                    selectedOption.classList.add('hidden');
+                    selectedOption.classList.remove('selected');
+                    selectedOption = null;
+                    
+                    // Increment correct count and check for win
+                    correctAnswersCount++;
+                    checkWinCondition();
+                } 
+                // If wrong
+                else {
+                    dropZone.classList.add('wrong');
+                    setTimeout(() => {
+                        dropZone.innerText = '';
+                        dropZone.classList.remove('wrong');
+                    }, 600); // clears automatically after a brief moment
+                }
+            }
+        }
+        
+        // Function to check if all words are completed
+        function checkWinCondition() {
+            if (correctAnswersCount === data.length) {
+                // Show congratulations message after a small delay
+                setTimeout(() => {
+                    successOverlay.style.display = 'flex';
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
