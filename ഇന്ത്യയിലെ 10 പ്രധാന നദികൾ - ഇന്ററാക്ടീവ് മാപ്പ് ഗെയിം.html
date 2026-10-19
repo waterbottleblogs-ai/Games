@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="ml" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>ഇന്ത്യയിലെ 10 പ്രധാന നദികൾ | Major Rivers of India Interactive Game</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans Malayalam & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --font-ml: 'Noto Sans Malayalam', 'Plus Jakarta Sans', sans-serif;
+        }
+        body {
+            font-family: var(--font-ml);
+            background: radial-gradient(circle at 50% 20%, #0f2942 0%, #071324 60%, #040b16 100%);
+            color: #f0f9ff;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.7);
+        }
+
+        /* SVG Map & River Animations */
+        .ocean-bg {
+            background: radial-gradient(circle at 45% 55%, #0c3559 0%, #07213a 65%, #051629 100%);
+        }
+
+        /* Base River Styling */
+        .river-base {
+            fill: none;
+            stroke: #38bdf8;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.65;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        /* Subtle dark casing under rivers for contrast */
+        .river-casing {
+            fill: none;
+            stroke: #082f49;
+            stroke-width: 5.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.75;
+            pointer-events: none;
+        }
+
+        /* Wide invisible touch/click target for easy mobile & desktop interaction */
+        .river-hit {
+            fill: none;
+            stroke: transparent;
+            stroke-width: 28;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            cursor: pointer;
+            pointer-events: stroke;
+        }
+
+        /* Hover effect on desktop */
+        .river-group:hover .river-base {
+            stroke: #7dd3fc;
+            stroke-width: 4.5;
+            opacity: 0.95;
+            filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8));
+        }
+
+        /* Active / Illuminated River Glow */
+        .river-glow {
+            fill: none;
+            stroke: #22d3ee;
+            stroke-width: 9;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            transition: opacity 0.35s ease, stroke 0.3s ease;
+            pointer-events: none;
+        }
+
+        /* Animated Flowing Water Stream */
+        .river-flow {
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 3.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 6 12;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes waterFlow {
+            from {
+                stroke-dashoffset: 180;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* When river is active */
+        .river-group.active .river-base {
+            stroke: #00f2fe;
+            stroke-width: 5.5;
+            opacity: 1;
+        }
+        .river-group.active .river-glow {
+            opacity: 0.85;
+            filter: url(#glow-filter);
+        }
+        .river-group.active .river-flow {
+            opacity: 0.95;
+            animation: waterFlow 3.2s linear infinite;
+        }
+
+        /* Quiz Correct River State */
+        .river-group.quiz-correct .river-base {
+            stroke: #34d399;
+            stroke-width: 6;
+            opacity: 1;
+        }
+        .river-group.quiz-correct .river-glow {
+            stroke: #10b981;
+            opacity: 0.9;
+            filter: url(#glow-filter);
+        }
+        .river-group.quiz-correct .river-flow {
+            stroke: #ecfdf5;
+            opacity: 1;
+            animation: waterFlow 2.6s linear infinite;
+        }
+
+        /* Quiz Wrong Flash State */
+        .river-group.quiz-wrong .river-base {
+            stroke: #fb7185;
+            stroke-width: 5.5;
+            opacity: 1;
+        }
+        .river-group.quiz-wrong .river-glow {
+            stroke: #f43f5e;
+            opacity: 0.85;
+            filter: url(#glow-filter);
+        }
+
+        /* Pulsing Origin Marker */
+        @keyframes pulseRing {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.9;
+            }
+            70% {
+                transform: scale(2.4);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(2.4);
+                opacity: 0;
+            }
+        }
+        .pulse-circle {
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: pulseRing 2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+        }
+
+        /* Floating Map Badge Transition */
+        .river-label-group {
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: rgba(15, 29, 51, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .glass-card-active {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(14, 116, 144, 0.35) 100%);
+            border-color: rgba(34, 211, 238, 0.75);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.25);
+        }
+
+        /* Ocean wave pattern animation */
+        @keyframes slowDrift {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(8px); }
+        }
+        .ocean-wave {
+            animation: slowDrift 7s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-950">
+
+    <!-- Top Navigation & Mode Header -->
+    <header class="glass-panel sticky top-0 z-30 border-b border-cyan-500/20 px-3 py-2.5 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 shrink-0">
+                    <svg class="w-6 h-6 text-slate-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 7c3-2 6-2 9 0s6 2 9 0"/>
+                        <path d="M3 12c3-2 6-2 9 0s6 2 9 0"/>
+                        <path d="M3 17c3-2 6-2 9 0s6 2 9 0"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        <span>ഇന്ത്യയിലെ 10 പ്രധാന നദികൾ</span>
+                        <span class="hidden md:inline-block text-xs font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">Interactive Map</span>
+                    </h1>
+                    <p class="text-xs text-cyan-200/75">മാപ്പിലെ നദികളിൽ തൊട്ട് അവയുടെ ഒഴുക്കും വിവരങ്ങളും മനസ്സിലാക്കാം</p>
+                </div>
+            </div>
+
+            <!-- Mode Switcher & Quick Controls -->
+            <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+                <!-- Mode Toggle Pill -->
+                <div class="bg-slate-900/90 p-1 rounded-xl border border-cyan-500/25 flex items-center">
+                    <button id="btnModeExplore" onclick="setGameMode('explore')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        <span>പഠന മോഡ്</span>
+                    </button>
+                    <button id="btnModeQuiz" onclick="setGameMode('quiz')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-cyan-100/80 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <span>ഗെയിം മോഡ്</span>
+                    </button>
+                </div>
+
+                <!-- Show/Hide All Labels Button -->
+                <button id="btnToggleLabels" onclick="toggleAllLabels()" title="നദികളുടെ പേരുകൾ കാണിക്കുക / മറയ്ക്കുക" class="px-2.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-cyan-500/30 text-cyan-200 text-xs font-semibold flex items-center gap-1.5 transition">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    <span id="labelToggleText" class="hidden sm:inline">പേരുകൾ കാണിക്കുക</span>
+                </button>
+
+                <!-- Sound Toggle Button -->
+                <button id="btnSound" onclick="toggleSound()" title="ശബ്ദം ഓൺ/ഓഫ് ചെയ്യുക" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-cyan-500/30 text-cyan-300 transition">
+                    <svg id="iconSoundOn" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                    <svg id="iconSoundOff" class="w-4 h-4 sm:w-5 sm:h-5 hidden text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 py-3 sm:px-6 sm:py-5 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
+
+        <!-- Left / Center Column: Interactive SVG Map of India (7 cols on desktop) -->
+        <section class="lg:col-span-7 flex flex-col gap-3">
+            
+            <!-- Quiz Question Banner (Shown only in Quiz Mode) -->
+            <div id="quizPromptBanner" class="hidden glass-panel rounded-2xl p-3.5 sm:p-4 border-2 border-amber-400/50 shadow-lg shadow-amber-500/10 transition-all">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950" id="quizQuestionCounter">ചോദ്യം 1 / 10</span>
+                        <span class="text-xs font-semibold text-cyan-200" id="quizStreakBadge">🔥 തുടർച്ച: 0</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-xs sm:text-sm font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-3 py-1 rounded-xl">
+                            സ്കോർ: <span id="quizScoreValue">0</span>
+                        </div>
+                        <button onclick="showQuizHint()" id="btnQuizHint" class="text-xs font-bold px-2.5 py-1 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 transition">
+                            💡 സൂചന (Hint)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Target Question in Malayalam -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900/80 rounded-xl p-3 border border-cyan-500/20">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider text-amber-300/90 font-semibold mb-0.5">മാപ്പിൽ കണ്ടെത്തി തൊടുക:</p>
+                        <h2 id="quizQuestionText" class="text-lg sm:text-xl font-extrabold text-white">
+                            ഗംഗാ നദി (Ganga) എവിടെയാണ്?
+                        </h2>
+                        <p id="quizClueText" class="text-xs sm:text-sm text-cyan-200/85 mt-1">
+                            സൂചന: ഇന്ത്യയിലെ ഏറ്റവും നീളം കൂടിയ നദി
+                        </p>
+                    </div>
+                    <button id="btnNextQuestion" onclick="nextQuizQuestion()" class="hidden shrink-0 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-500/25 hover:brightness-110 transition">
+                        അടുത്ത ചോദ്യം →
+                    </button>
+                </div>
+
+                <!-- Feedback Toast inside Quiz Banner -->
+                <div id="quizFeedbackBox" class="hidden mt-2.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between">
+                    <span id="quizFeedbackText"></span>
+                </div>
+            </div>
+
+            <!-- Map Container Card -->
+            <div class="relative rounded-3xl overflow-hidden border border-cyan-500/30 shadow-2xl ocean-bg flex flex-col items-center justify-center">
+                
+                <!-- Top Map Overlay Bar: Legend & Progress -->
+                <div class="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+                    <div class="glass-panel px-3 py-1.5 rounded-xl pointer-events-auto flex items-center gap-2 text-xs">
+                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                        <span id="mapStatusTitle" class="font-semibold text-cyan-100">ഏതെങ്കിലും നദിയിൽ തൊടുക</span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 pointer-events-auto">
+                        <button onclick="resetMapSelection()" title="മാപ്പ് പുനഃക്രമീകരിക്കുക (Reset)" class="glass-panel hover:bg-slate-800/90 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-1 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span>റീസെറ്റ്</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive SVG Map of India -->
+                <div class="w-full flex items-center justify-center p-1 sm:p-3">
+                    <svg id="indiaMapSvg" viewBox="0 0 800 880" class="w-full max-h-[68vh] sm:max-h-[74vh] h-auto select-none">
+                        <defs>
+                            <!-- Glow Filter for Active Rivers -->
+                            <filter id="glow-filter" x="-40%" y="-40%" width="180%" height="180%">
+                                <feGaussianBlur stdDeviation="5" result="blur1" />
+                                <feGaussianBlur stdDeviation="10" result="blur2" />
+                                <feMerge>
+                                    <feMergeNode in="blur2" />
+                                    <feMergeNode in="blur1" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+
+                            <!-- Soft Drop Shadow for India Landmass -->
+                            <filter id="land-shadow" x="-10%" y="-10%" width="120%" height="120%">
+                                <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#020617" flood-opacity="0.75" />
+                            </filter>
+
+                            <!-- Terrain Gradient for India Landmass -->
+                            <linearGradient id="indiaLandGrad" x1="20%" y1="5%" x2="75%" y2="95%">
+                                <stop offset="0%" stop-color="#1e3a2f" />
+                                <stop offset="35%" stop-color="#16302b" />
+                                <stop offset="70%" stop-color="#122728" />
+                                <stop offset="100%" stop-color="#0f2329" />
+                            </linearGradient>
+
+                            <!-- Neighboring Land Gradient -->
+                            <linearGradient id="neighborLandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#0f1e2e" />
+                                <stop offset="100%" stop-color="#091522" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Subtle Latitude / Longitude Grid Lines -->
+                        <g stroke="#1e3a5f" stroke-width="0.6" stroke-dasharray="4 6" opacity="0.45">
+                            <line x1="0" y1="180" x2="800" y2="180" />
+                            <line x1="0" y1="350" x2="800" y2="350" />
+                            <line x1="0" y1="520" x2="800" y2="520" />
+                            <line x1="0" y1="690" x2="800" y2="690" />
+                            <line x1="180" y1="0" x2="180" y2="880" />
+                            <line x1="360" y1="0" x2="360" y2="880" />
+                            <line x1="540" y1="0" x2="540" y2="880" />
+                        </g>
+
+                        <!-- Tropic of Cancer (ഉത്തരായനരേഖ - 23.5°N) -->
+                        <g opacity="0.45">
+                            <line x1="20" y1="414" x2="780" y2="414" stroke="#f59e0b" stroke-width="1" stroke-dasharray="6 6" />
+                            <text x="32" y="408" fill="#fbbf24" font-size="10" font-weight="600">ഉത്തരായനരേഖ (23.5°N)</text>
+                        </g>
+
+                        <!-- Neighboring Context Landmasses (Tibet, Pakistan, Nepal, Bangladesh, Myanmar, Sri Lanka) -->
+                        <g id="neighboringLandLayer" fill="url(#neighborLandGrad)" stroke="#1e293b" stroke-width="1"></g>
+
+                        <!-- Main India Landmass Layer -->
+                        <g id="indiaLandLayer"></g>
+
+                        <!-- Subtle Mountain Ranges & Topographical Hints (Himalayas, Western Ghats, Vindhyas) -->
+                        <g id="terrainHintsLayer" pointer-events="none"></g>
+
+                        <!-- Ocean & Sea Labels in Malayalam & English -->
+                        <g pointer-events="none" opacity="0.65">
+                            <!-- Arabian Sea -->
+                            <text x="85" y="620" fill="#38bdf8" font-size="14" font-weight="700" text-anchor="middle" letter-spacing="1">അറബിക്കടൽ</text>
+                            <text x="85" y="638" fill="#7dd3fc" font-size="10" font-weight="600" text-anchor="middle" letter-spacing="1.5">ARABIAN SEA</text>
+                            <path class="ocean-wave" d="M 45 650 Q 65 645 85 650 T 125 650" fill="none" stroke="#38bdf8" stroke-width="1.2" opacity="0.5"/>
+
+                            <!-- Bay of Bengal -->
+                            <text x="560" y="610" fill="#38bdf8" font-size="14" font-weight="700" text-anchor="middle" letter-spacing="1">ബംഗാൾ ഉൾക്കടൽ</text>
+                            <text x="560" y="628" fill="#7dd3fc" font-size="10" font-weight="600" text-anchor="middle" letter-spacing="1.5">BAY OF BENGAL</text>
+                            <path class="ocean-wave" d="M 520 640 Q 540 635 560 640 T 600 640" fill="none" stroke="#38bdf8" stroke-width="1.2" opacity="0.5"/>
+
+                            <!-- Indian Ocean -->
+                            <text x="310" y="852" fill="#38bdf8" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="1.5">ഇന്ത്യൻ മഹാസമുദ്രം (INDIAN OCEAN)</text>
+
+                            <!-- Himalayas Label -->
+                            <text x="415" y="245" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle" transform="rotate(-24 415 245)" opacity="0.7">ഹിമാലയ പർവ്വതനിരകൾ (HIMALAYAS)</text>
+                        </g>
+
+                        <!-- All 10 Interactive Rivers Layer -->
+                        <g id="riversLayer"></g>
+
+                        <!-- Active River Origin & Mouth Markers Layer -->
+                        <g id="markersLayer" pointer-events="none"></g>
+
+                        <!-- Floating River Name Labels Layer -->
+                        <g id="labelsLayer" pointer-events="none"></g>
+                    </svg>
+                </div>
+
+                <!-- Bottom Map Legend Bar -->
+                <div class="w-full bg-slate-950/80 border-t border-cyan-500/20 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs text-cyan-200/80">
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-amber-400 inline-block shadow shadow-amber-400"></span>
+                            <span>ഉത്ഭവ സ്ഥാനം (Origin)</span>
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-5 h-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-white inline-block"></span>
+                            <span>ഒഴുകുന്ന ദിശ (Water Flow)</span>
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full border-2 border-cyan-300 bg-cyan-900 inline-block"></span>
+                            <span>പതിക്കുന്ന സ്ഥലം (Mouth)</span>
+                        </span>
+                    </div>
+                    <div id="exploreProgressBadge" class="font-bold text-cyan-300">
+                        പഠിച്ച നദികൾ: <span id="exploredCount">0</span> / 10
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Detailed River Information Card & 10 River Buttons List (5 cols on desktop) -->
+        <aside class="lg:col-span-5 flex flex-col gap-4">
+
+            <!-- Active River Info Card -->
+            <div id="riverInfoCard" class="glass-panel rounded-3xl p-4 sm:p-5 border border-cyan-400/30 shadow-xl relative overflow-hidden transition-all">
+                <!-- Decorative background water glow -->
+                <div class="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-cyan-500/10 blur-2xl pointer-events-none"></div>
+
+                <!-- Default Prompt State (Before any river is touched) -->
+                <div id="infoEmptyState" class="py-6 text-center flex flex-col items-center justify-center gap-3">
+                    <div class="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-300">
+                        <svg class="w-8 h-8 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-extrabold text-white">ഒരു നദി തിരഞ്ഞെടുക്കുക</h2>
+                        <p class="text-xs sm:text-sm text-cyan-200/75 max-w-sm mt-1">
+                            ഇന്ത്യൻ മാപ്പിലെ ഏതെങ്കിലും നദിയിൽ തൊടുക അല്ലെങ്കിൽ താഴെ നൽകിയിരിക്കുന്ന പട്ടികയിൽ നിന്ന് ഒരു നദി തിരഞ്ഞെടുക്കുക.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Populated River Details State -->
+                <div id="infoPopulatedState" class="hidden">
+                    <div class="flex items-start justify-between gap-3 border-b border-cyan-500/20 pb-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span id="infoRiverBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                    ഹിമാലയൻ നദി
+                                </span>
+                                <span id="infoDirectionBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-300">
+                                    കിഴക്കോട്ട് ഒഴുകുന്നു
+                                </span>
+                            </div>
+                            <h2 id="infoNameMl" class="text-2xl sm:text-3xl font-extrabold text-white mt-1.5 tracking-tight">
+                                ഗംഗാ നദി
+                            </h2>
+                            <p id="infoNameEn" class="text-xs sm:text-sm font-semibold text-cyan-300">
+                                Ganga River (The Ganges)
+                            </p>
+                        </div>
+
+                        <!-- Length Highlight Box -->
+                        <div class="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/40 rounded-2xl px-3.5 py-2 text-right shrink-0">
+                            <span class="text-[10px] uppercase tracking-wider text-cyan-200/80 block font-semibold">നീളം (Length)</span>
+                            <span id="infoLength" class="text-lg sm:text-xl font-extrabold text-cyan-300">2,525 km</span>
+                        </div>
+                    </div>
+
+                    <!-- Key Metadata Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-3.5">
+                        <div class="bg-slate-900/75 rounded-2xl p-3 border border-slate-700/60">
+                            <div class="flex items-center gap-1.5 text-amber-300 text-xs font-bold mb-1">
+                                <span>🏔️ ഉത്ഭവം (Origin)</span>
+                            </div>
+                            <p id="infoOrigin" class="text-xs sm:text-sm text-slate-100 font-medium leading-relaxed"></p>
+                        </div>
+
+                        <div class="bg-slate-900/75 rounded-2xl p-3 border border-slate-700/60">
+                            <div class="flex items-center gap-1.5 text-cyan-300 text-xs font-bold mb-1">
+                                <span>🌊 പതിക്കുന്ന സ്ഥലം (Mouth)</span>
+                            </div>
+                            <p id="infoMouth" class="text-xs sm:text-sm text-slate-100 font-medium leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <!-- States / Regions Flowed Through -->
+                    <div class="bg-slate-900/55 rounded-2xl p-3 border border-slate-800 mb-3">
+                        <span class="text-xs font-bold text-sky-300 block mb-1">🗺️ ഒഴുകുന്ന പ്രദേശങ്ങൾ (Regions):</span>
+                        <p id="infoStates" class="text-xs sm:text-sm text-slate-200"></p>
+                    </div>
+
+                    <!-- Key Facts List -->
+                    <div class="bg-cyan-950/40 rounded-2xl p-3.5 border border-cyan-500/25">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-cyan-300 mb-2 flex items-center gap-1.5">
+                            <span>✨ പ്രധാന സവിശേഷതകൾ (Key Facts)</span>
+                        </h3>
+                        <ul id="infoFactsList" class="space-y-1.5 text-xs sm:text-sm text-cyan-50/95 leading-relaxed"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10 Rivers Quick-Select Grid -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-5 border border-cyan-500/20">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-white">10 പ്രധാന നദികളുടെ പട്ടിക</h3>
+                        <p id="sidebarSubtitle" class="text-xs text-cyan-200/70">നദിയിൽ ക്ലിക്ക് ചെയ്ത് മാപ്പിൽ അതിന്റെ വഴി കാണാം</p>
+                    </div>
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">10 നദികൾ</span>
+                </div>
+
+                <div id="riverButtonsGrid" class="grid grid-cols-2 gap-2 sm:gap-2.5">
+                    <!-- Dynamically populated by JS -->
+                </div>
+            </div>
+
+        </aside>
+    </main>
+
+    <!-- Quiz Completion Celebration Modal -->
+    <div id="quizCompleteModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-6 border-2 border-cyan-400/50 text-center shadow-2xl transform transition-all">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center text-3xl shadow-lg shadow-amber-500/30 mb-4">
+                🏆
+            </div>
+            <h2 class="text-2xl font-extrabold text-white">അഭിനന്ദനങ്ങൾ! (Congratulations!)</h2>
+            <p class="text-sm text-cyan-200 mt-1">ഇന്ത്യയിലെ 10 പ്രധാന നദികളും നിങ്ങൾ മാപ്പിൽ കണ്ടെത്തി!</p>
+
+            <div class="my-5 bg-slate-900/90 rounded-2xl p-4 border border-cyan-500/30 grid grid-cols-2 gap-3">
+                <div>
+                    <span class="text-xs text-slate-400 block">ആകെ സ്കോർ (Score)</span>
+                    <span id="modalFinalScore" class="text-2xl font-extrabold text-emerald-400">100 / 100</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 block">കൃത്യത (Rating)</span>
+                    <span id="modalStars" class="text-xl font-extrabold text-amber-400">⭐⭐⭐</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2.5">
+                <button onclick="startQuizGame()" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-extrabold text-sm shadow-lg hover:brightness-110 transition">
+                    🔄 വീണ്ടും കളിക്കുക
+                </button>
+                <button onclick="closeModalAndExplore()" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-200 font-bold text-sm border border-cyan-500/30 transition">
+                    📖 പഠന മോഡിലേക്ക് മടങ്ങുക
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /******************************************************************
+         * 1. GEOGRAPHIC PROJECTION & HIGH-PRECISION COORDINATE DATA
+         ******************************************************************/
+        // Converts [Longitude, Latitude] into SVG [x, y] inside viewBox="0 0 800 880"
+        function project(lon, lat) {
+            const x = +((lon - 66.8) * 24.8).toFixed(1);
+            const y = +(855 - (lat - 6.2) * 25.4).toFixed(1);
+            return [x, y];
+        }
+
+        // Convert array of [lon, lat] points to an SVG polygon/polyline path string
+        function pointsToLinearPath(coords, closePath = false) {
+            if (!coords || !coords.length) return '';
+            const pts = coords.map(([lon, lat]) => project(lon, lat));
+            let d = `M ${pts[0][0]} ${pts[0][1]}`;
+            for (let i = 1; i < pts.length; i++) {
+                d += ` L ${pts[i][0]} ${pts[i][1]}`;
+            }
+            if (closePath) d += ' Z';
+            return d;
+        }
+
+        // Convert array of [lon, lat] points into a smooth Catmull-Rom Cubic Bezier SVG path
+        function pointsToSmoothRiverPath(coords, tension = 0.22) {
+            const pts = coords.map(([lon, lat]) => project(lon, lat));
+            if (pts.length < 2) return '';
+            if (pts.length === 2) {
+                return `M ${pts[0][0]} ${pts[0][1]} L ${pts[1][0]} ${pts[1][1]}`;
+            }
+
+            let d = `M ${pts[0][0]} ${pts[0][1]}`;
+            for (let i = 0; i < pts.length - 1; i++) {
+                const p0 = pts[i === 0 ? 0 : i - 1];
+                const p1 = pts[i];
+                const p2 = pts[i + 1];
+                const p3 = pts[i + 2 < pts.length ? i + 2 : pts.length - 1];
+
+                const cp1x = +(p1[0] + (p2[0] - p0[0]) * tension).toFixed(1);
+                const cp1y = +(p1[1] + (p2[1] - p0[1]) * tension).toFixed(1);
+                const cp2x = +(p2[0] - (p3[0] - p1[0]) * tension).toFixed(1);
+                const cp2y = +(p2[1] - (p3[1] - p1[1]) * tension).toFixed(1);
+
+                d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2[0]} ${p2[1]}`;
+            }
+            return d;
+        }
+
+        // Accurate India Mainland Outline Coordinates ([Lon, Lat])
+        const indiaMainlandCoords = [
+            // Gujarat - Kutch & Kathiawar
+            [68.15, 23.65], [68.85, 24.30], [70.60, 24.45], [71.10, 24.65],
+            // Rajasthan Border
+            [70.30, 25.40], [69.50, 26.85], [70.20, 27.95], [71.75, 28.00], [72.90, 29.05], [73.85, 30.00],
+            // Punjab & Jammu
+            [74.55, 31.10], [74.95, 32.10], [74.75, 32.75], [74.05, 33.45], [73.75, 34.30], [73.95, 35.15],
+            // Gilgit / Northern Frontier / Karakoram / Ladakh
+            [73.20, 35.95], [74.10, 36.85], [74.70, 37.05], [75.60, 36.90], [76.00, 35.95], [77.00, 35.65],
+            [77.85, 35.50], [78.30, 35.85], [79.55, 35.35], [79.95, 34.40], [79.05, 33.75], [78.95, 33.10],
+            [79.45, 32.65], [78.60, 32.45], [78.55, 31.85], [79.10, 31.35], [79.95, 30.90], [81.00, 30.20],
+            // Uttarakhand - Nepal Border (Sarda / Kali / Terai)
+            [80.10, 28.90], [81.20, 28.35], [82.50, 27.75], [84.10, 27.45], [85.65, 26.75], [87.20, 26.55], [88.15, 26.65],
+            // Sikkim
+            [88.05, 27.25], [88.15, 27.90], [88.75, 28.10], [88.90, 27.30],
+            // Bhutan Border
+            [89.15, 26.85], [90.50, 26.80], [91.65, 26.82], [92.10, 26.90],
+            // Arunachal Pradesh
+            [91.65, 27.75], [92.60, 27.95], [93.75, 28.35], [94.55, 29.05], [95.30, 29.25], [96.15, 29.30],
+            [96.60, 28.75], [97.40, 28.20], [97.10, 27.65], [96.25, 27.20],
+            // Nagaland, Manipur, Mizoram
+            [95.25, 26.65], [95.10, 25.90], [94.65, 25.20], [94.35, 24.20], [93.60, 23.85], [93.35, 23.05],
+            [93.05, 22.05], [92.60, 21.95], [92.30, 22.85], [92.15, 23.65],
+            // Tripura & Meghalaya Border with Bangladesh
+            [91.85, 23.00], [91.25, 23.25], [91.25, 24.05], [91.95, 24.35], [92.30, 24.95],
+            [91.60, 25.18], [90.55, 25.22], [89.85, 25.45], [89.70, 26.05], [89.20, 26.25], [88.45, 26.45],
+            // West Bengal Border & Sundarbans
+            [88.10, 25.80], [88.55, 25.15], [88.25, 24.30], [88.85, 23.40], [88.95, 22.25], [89.05, 21.62],
+            [88.15, 21.60], [87.60, 21.65],
+            // Odisha Coast (Balasore, Paradip, Chilika, Gopalpur)
+            [86.95, 21.30], [86.85, 20.75], [86.72, 20.30], [85.85, 19.80], [85.15, 19.45], [84.70, 19.00],
+            // Andhra Pradesh Coast (Vizag, Kakinada, Godavari & Krishna Deltas, Nellore)
+            [83.95, 18.25], [83.30, 17.70], [82.45, 17.10], [82.25, 16.50], [81.75, 16.30], [81.13, 15.78],
+            [80.55, 15.80], [80.10, 15.10], [80.15, 14.15], [80.30, 13.45],
+            // Tamil Nadu Coast (Chennai, Puducherry, Poompuhar, Point Calimere, Rameswaram, Kanyakumari)
+            [80.28, 13.08], [79.85, 11.95], [79.85, 11.14], [79.85, 10.30], [79.25, 10.05], [78.95, 9.55],
+            [79.32, 9.28], [78.80, 9.15], [78.15, 8.75], [77.80, 8.35], [77.55, 8.08],
+            // Kerala Coast (Trivandrum, Kollam, Kochi, Kozhikode, Kannur)
+            [76.95, 8.45], [76.55, 8.95], [76.27, 9.95], [75.95, 10.75], [75.77, 11.25], [75.35, 11.90], [74.95, 12.50],
+            // Karnataka & Goa Coast (Mangaluru, Karwar, Goa)
+            [74.80, 12.90], [74.65, 13.85], [74.15, 14.80], [73.80, 15.50],
+            // Maharashtra Coast (Ratnagiri, Mumbai, Dahanu)
+            [73.45, 16.35], [73.25, 17.30], [72.95, 18.30], [72.82, 19.05], [72.72, 19.95], [72.88, 20.65],
+            // South Gujarat & Gulf of Khambhat & Saurashtra & Gulf of Kutch
+            [72.63, 21.10], [72.58, 21.65], [72.20, 21.75], [72.18, 21.30], [71.55, 20.90], [70.75, 20.72],
+            [69.60, 21.65], [68.97, 22.24], [69.65, 22.52], [70.35, 22.85], [70.10, 23.05], [69.25, 22.82],
+            [68.55, 23.20]
+        ];
+
+        // Sri Lanka Outline for Southern Context
+        const sriLankaCoords = [
+            [79.75, 9.75], [80.25, 9.60], [80.85, 8.95], [81.25, 8.55], [81.85, 7.45],
+            [81.70, 6.50], [80.60, 5.95], [79.95, 6.50], [79.85, 7.45], [79.75, 8.35], [79.90, 9.05]
+        ];
+
+        /******************************************************************
+         * 2. COMPREHENSIVE DATA FOR THE 10 MAJOR RIVERS OF INDIA
+         ******************************************************************/
+        const RIVERS_DATA = [
+            {
+                id: 'ganga',
+                nameMl: 'ഗംഗ',
+                fullNameMl: 'ഗംഗാ നദി',
+                nameEn: 'Ganga (Ganges)',
+                categoryMl: 'ഹിമാലയൻ നദി',
+                directionMl: 'കിഴക്കോട്ട് ഒഴുകുന്നു',
+                length: '2,525 km',
+                originMl: 'ഗംഗോത്രി ഹിമാനി (ഭാഗീരഥി), ഉത്തരാഖണ്ഡ്',
+                mouthMl: 'ബംഗാൾ ഉൾക്കടൽ (സുന്ദർബൻസ് ഡെൽറ്റ)',
+                statesMl: 'ഉത്തരാഖണ്ഡ്, ഉത്തർപ്രദേശ്, ബീഹാർ, പശ്ചിമ ബംഗാൾ (തുടർന്ന് ബംഗ്ലാദേശ്)',
+                clueMl: 'ഗംഗോത്രി ഹിമാനിയിൽ നിന്ന് ഉത്ഭവിച്ച് ബംഗാൾ ഉൾക്കടലിൽ പതിക്കുന്ന ഇന്ത്യയിലെ ഏറ്റവും നീളം കൂടിയ നദി.',
+                factsMl: [
+                    'ഇന്ത്യയിലെ ഏറ്റവും നീളം കൂടിയതും ഏറ്റവും വലിയ നദീതടമുള്ളതുമായ ദേശീയ നദിയാണ് ഗംഗ.',
+                    'ഭാഗീരഥി, അളകനന്ദ എന്നീ നദികൾ ഉത്തരാഖണ്ഡിലെ ദേവപ്രയാഗിൽ വെച്ച് സംഗമിച്ചാണ് ഗംഗയായി ഒഴുകുന്നത്.',
+                    'ബ്രഹ്മപുത്രയുമായി ചേർന്ന് ലോകത്തിലെ ഏറ്റവും വലിയ ഡെൽറ്റയായ സുന്ദർബൻസ് (Sundarbans) നിർമ്മിക്കുന്നു.'
+                ],
+                labelPos: [83.2, 26.2],
+                // Ordered from Origin (Gangotri) -> Mouth (Bay of Bengal)
+                coords: [
+                    [79.08, 30.92], [78.60, 30.15], [78.16, 29.95], [78.40, 28.90],
+                    [79.35, 27.65], [80.35, 26.47], [81.88, 25.43], [83.01, 25.32],
+                    [84.15, 25.60], [85.14, 25.61], [86.50, 25.30], [87.65, 25.15],
+                    [87.92, 24.80], [88.25, 23.60], [88.36, 22.57], [88.15, 21.65]
+                ],
+                // Secondary distributary (Padma branch into Bangladesh)
+                branchCoords: [
+                    [87.92, 24.80], [88.90, 24.20], [89.75, 23.80], [90.45, 22.80]
+                ]
+            },
+            {
+                id: 'yamuna',
+                nameMl: 'യമുന',
+                fullNameMl: 'യമുനാ നദി',
+                nameEn: 'Yamuna',
+                categoryMl: 'ഹിമാലയൻ നദി',
+                directionMl: 'തെക്ക്-കിഴക്കോട്ട് ഒഴുകുന്നു',
+                length: '1,376 km',
+                originMl: 'യമുനോത്രി ഹിമാനി (ബന്ദർപൂഞ്ച് കൊടുമുടി), ഉത്തരാഖണ്ഡ്',
+                mouthMl: 'ഗംഗാ നദിയിൽ ചേരുന്നു (ത്രിവേണി സംഗമം, പ്രയാഗ്‌രാജ്)',
+                statesMl: 'ഉത്തരാഖണ്ഡ്, ഹിമാചൽ പ്രദേശ്, ഹരിയാന, ഡൽഹി, ഉത്തർപ്രദേശ്',
+                clueMl: 'ഡൽഹി, ആഗ്ര എന്നീ നഗരങ്ങളിലൂടെ ഒഴുകി പ്രയാഗ്‌രാജിൽ വെച്ച് ഗംഗയിൽ ചേരുന്ന ഏറ്റവും വലിയ പോഷകനദി.',
+                factsMl: [
+                    'ഇന്ത്യയിലെ ഏറ്റവും നീളം കൂടിയ പോഷകനദിയാണ് (Tributary) യമുന.',
+                    'രാജ്യതലസ്ഥാനമായ ന്യൂഡൽഹി, ചരിത്രനഗരമായ ആഗ്ര (താജ്മഹൽ), മഥുര എന്നിവ യമുനാ നദീതീരത്താണ്.',
+                    'പ്രയാഗ്‌രാജിലെ (അലഹബാദ്) ത്രിവേണി സംഗമത്തിൽ വെച്ച് യമുന ഗംഗാ നദിയുമായി ലയിക്കുന്നു.'
+                ],
+                labelPos: [78.4, 27.6],
+                coords: [
+                    [78.46, 31.01], [77.62, 30.44], [77.28, 29.70], [77.24, 28.65],
+                    [77.68, 27.50], [78.02, 27.18], [79.02, 26.77], [80.15, 25.95],
+                    [81.10, 25.55], [81.88, 25.43]
+                ]
+            },
+            {
+                id: 'brahmaputra',
+                nameMl: 'ബ്രഹ്മപുത്ര',
+                fullNameMl: 'ബ്രഹ്മപുത്ര നദി',
+                nameEn: 'Brahmaputra',
+                categoryMl: 'ഹിമാലയൻ നദി',
+                directionMl: 'കിഴക്കോട്ടും തുടർന്ന് തെക്കോട്ടും',
+                length: '2,900 km',
+                originMl: 'മാനസസരോവർ തടാകത്തിന് സമീപമുള്ള ആങ്‌സി ഹിമാനി, ടിബറ്റ്',
+                mouthMl: 'ബംഗാൾ ഉൾക്കടൽ (ബംഗ്ലാദേശിലൂടെ ഒഴുകി)',
+                statesMl: 'ടിബറ്റ് (ചൈന), അരുണാചൽ പ്രദേശ്, അസം, ബംഗ്ലാദേശ്',
+                clueMl: 'ടിബറ്റിൽ സാങ്‌പോ (Tsangpo) എന്നറിയപ്പെടുന്നതും അരുണാചൽ പ്രദേശിലൂടെയും അസമിലൂടെയും ഒഴുകുന്നതുമായ മഹാനദി.',
+                factsMl: [
+                    'ജലലഭ്യതയുടെയും വ്യാപ്തിയുടെയും കാര്യത്തിൽ ഇന്ത്യയിലെ ഏറ്റവും വലിയ നദിയാണ് ബ്രഹ്മപുത്ര.',
+                    'ടിബറ്റിൽ "യാർലുങ് സാങ്‌പോ" എന്നും അരുണാചൽ പ്രദേശിൽ "ദിഹാങ് / സിയാങ്" എന്നും അറിയപ്പെടുന്നു.',
+                    'ലോകത്തിലെ ഏറ്റവും വലിയ നദീജന്യ ദ്വീപായ അസമിലെ "മാജുലി (Majuli)" ബ്രഹ്മപുത്ര നദിയിലാണ് സ്ഥിതി ചെയ്യുന്നത്.'
+                ],
+                labelPos: [92.8, 27.3],
+                coords: [
+                    [82.04, 30.45], [84.50, 29.55], [87.20, 29.28], [90.10, 29.25],
+                    [92.80, 29.18], [94.60, 29.60], [95.10, 29.72], [95.05, 28.75],
+                    [95.33, 28.06], [95.50, 27.75], [94.91, 27.48], [93.80, 26.85],
+                    [92.80, 26.62], [91.74, 26.19], [90.60, 26.15], [89.98, 26.02],
+                    [89.72, 24.80], [89.75, 23.80], [90.45, 22.80], [90.65, 22.10]
+                ]
+            },
+            {
+                id: 'indus',
+                nameMl: 'സിന്ധു',
+                fullNameMl: 'സിന്ധു നദി',
+                nameEn: 'Indus (Sindhu)',
+                categoryMl: 'ഹിമാലയൻ നദി',
+                directionMl: 'വടക്ക്-പടിഞ്ഞാറോട്ട് ഒഴുകുന്നു',
+                length: '3,180 km',
+                originMl: 'മാനസസരോവർ തടാകത്തിന് സമീപം (ബൊഖാർ ചു), ടിബറ്റ്',
+                mouthMl: 'അറബിക്കടൽ (കറാച്ചിക്ക് സമീപം)',
+                statesMl: 'ടിബറ്റ്, ലഡാക്ക് (ഇന്ത്യ), പാകിസ്ഥാൻ',
+                clueMl: 'ലഡാക്കിലൂടെ ഒഴുകി പാകിസ്ഥാനിലൂടെ അറബിക്കടലിൽ പതിക്കുന്ന, പ്രാചീന സംസ്കാരത്തിന് പേരുകേട്ട നദി.',
+                factsMl: [
+                    'ലോകപ്രശസ്തമായ സിന്ധുനദീതട സംസ്കാരം (Indus Valley Civilization) വളർന്നുവന്നത് ഈ നദീതീരത്താണ്.',
+                    'ഇന്ത്യ എന്ന പേര് തന്നെ സിന്ധു നദിയിൽ നിന്നാണ് ഉണ്ടായത്.',
+                    'ഝലം, ചിനാബ്, രവി, ബിയാസ്, സത്‌ലജ് എന്നിവയാണ് സിന്ധു നദിയുടെ പ്രധാന പോഷകനദികൾ (പഞ്ചനദികൾ).'
+                ],
+                labelPos: [76.8, 34.6],
+                coords: [
+                    [81.35, 31.25], [79.95, 32.25], [79.10, 33.10], [77.58, 34.15],
+                    [76.20, 34.85], [75.40, 35.45], [74.60, 35.75], [73.60, 35.25],
+                    [72.80, 34.05], [71.60, 32.80], [71.00, 30.80], [70.20, 29.00],
+                    [68.90, 27.60], [68.25, 25.40], [67.45, 23.95]
+                ]
+            },
+            {
+                id: 'godavari',
+                nameMl: 'ഗോദാവരി',
+                fullNameMl: 'ഗോദാവരി നദി',
+                nameEn: 'Godavari',
+                categoryMl: 'ഉപദ്വീപീയ നദി',
+                directionMl: 'കിഴക്കോട്ട് ഒഴുകുന്നു',
+                length: '1,465 km',
+                originMl: 'ത്രയംബകേശ്വർ (നാസിക്), പശ്ചിമഘട്ടം, മഹാരാഷ്ട്ര',
+                mouthMl: 'ബംഗാൾ ഉൾക്കടൽ (ആന്ധ്രാപ്രദേശ്)',
+                statesMl: 'മഹാരാഷ്ട്ര, തെലങ്കാന, ഛത്തീസ്ഗഢ്, ആന്ധ്രാപ്രദേശ്',
+                clueMl: '"ദക്ഷിണ ഗംഗ" എന്നറിയപ്പെടുന്ന, ദക്ഷിണേന്ത്യയിലെ ഏറ്റവും നീളം കൂടിയ നദി.',
+                factsMl: [
+                    'ഉപദ്വീപീയ ഇന്ത്യയിലെ (ദക്ഷിണേന്ത്യയിലെ) ഏറ്റവും വലിയതും നീളം കൂടിയതുമായ നദിയാണ് ഗോദാവരി.',
+                    'വലിപ്പവും നീളവും കാരണം "ദക്ഷിണ ഗംഗ" (Dakshin Ganga) എന്നും "വൃദ്ധ ഗംഗ" എന്നും അറിയപ്പെടുന്നു.',
+                    'മഹാരാഷ്ട്രയിലെ നാസിക്കിന് സമീപമുള്ള ത്രയംബകേശ്വറിൽ നിന്നാണ് ഈ നദി ഉത്ഭവിക്കുന്നത്.'
+                ],
+                labelPos: [78.2, 19.1],
+                coords: [
+                    [73.53, 19.93], [74.50, 19.65], [75.38, 19.48], [76.50, 19.15],
+                    [77.32, 19.15], [78.10, 18.67], [79.15, 18.85], [79.90, 18.81],
+                    [80.45, 18.15], [80.89, 17.67], [81.77, 17.00], [82.25, 16.50]
+                ]
+            },
+            {
+                id: 'krishna',
+                nameMl: 'കൃഷ്ണ',
+                fullNameMl: 'കൃഷ്ണാ നദി',
+                nameEn: 'Krishna',
+                categoryMl: 'ഉപദ്വീപീയ നദി',
+                directionMl: 'കിഴക്കോട്ട് ഒഴുകുന്നു',
+                length: '1,400 km',
+                originMl: 'മഹാബലേശ്വർ (പശ്ചിമഘട്ടം), മഹാരാഷ്ട്ര',
+                mouthMl: 'ബംഗാൾ ഉൾക്കടൽ (ഹംസലദീവി, ആന്ധ്രാപ്രദേശ്)',
+                statesMl: 'മഹാരാഷ്ട്ര, കർണാടക, തെലങ്കാന, ആന്ധ്രാപ്രദേശ്',
+                clueMl: 'മഹാരാഷ്ട്രയിലെ മഹാബലേശ്വറിൽ നിന്ന് ഉത്ഭവിച്ച് വിജയവാഡയിലൂടെ ബംഗാൾ ഉൾക്കടലിൽ പതിക്കുന്ന നദി.',
+                factsMl: [
+                    'ഗോദാവരിക്ക് ശേഷം ദക്ഷിണേന്ത്യയിലെ ഏറ്റവും നീളം കൂടിയ രണ്ടാമത്തെ നദിയാണ് കൃഷ്ണ.',
+                    'നാഗാർജുന സാഗർ അണക്കെട്ട്, ശ്രീശൈലം അണക്കെട്ട്, അൽമാട്ടി അണക്കെട്ട് എന്നിവ കൃഷ്ണാ നദിയിലാണ്.',
+                    'തുംഗഭദ്ര, ഭീമ, കൊയ്ന എന്നിവയാണ് കൃഷ്ണാ നദിയുടെ പ്രധാന പോഷകനദികൾ.'
+                ],
+                labelPos: [77.4, 16.3],
+                coords: [
+                    [73.66, 17.92], [74.25, 17.15], [74.85, 16.75], [75.89, 16.33],
+                    [76.80, 16.35], [77.65, 16.30], [78.87, 16.08], [79.31, 16.57],
+                    [80.10, 16.65], [80.62, 16.50], [81.13, 15.78]
+                ]
+            },
+            {
+                id: 'kaveri',
+                nameMl: 'കാവേരി',
+                fullNameMl: 'കാവേരി നദി',
+                nameEn: 'Kaveri (Cauvery)',
+                categoryMl: 'ഉപദ്വീപീയ നദി',
+                directionMl: 'തെക്ക്-കിഴക്കോട്ട് ഒഴുകുന്നു',
+                length: '800 km',
+                originMl: 'തലക്കാവേരി (ബ്രഹ്മഗിരി കുന്നുകൾ, കുടക്), കർണാടക',
+                mouthMl: 'ബംഗാൾ ഉൾക്കടൽ (പൂമ്പുഹാർ, തമിഴ്‌നാട്)',
+                statesMl: 'കർണാടക, തമിഴ്‌നാട് (പോഷകനദികൾ കേരളത്തിലും പുതുച്ചേരിയിലും)',
+                clueMl: 'കർണാടകയിലെ കുടകിൽ (തലക്കാവേരി) നിന്ന് ഉത്ഭവിച്ച് തമിഴ്‌നാട്ടിലൂടെ ഒഴുകുന്ന തെക്കേ ഇന്ത്യയിലെ പ്രശസ്ത നദി.',
+                factsMl: [
+                    'കർണാടകയിലെ കുടക് ജില്ലയിലുള്ള ബ്രഹ്മഗിരി കുന്നുകളിലെ തലക്കാവേരിയിൽ നിന്നാണ് ഉത്ഭവം.',
+                    'കേരളത്തിൽ നിന്നുള്ള കബനി, ഭവാനി, പാമ്പാർ എന്നീ നദികൾ കാവേരിയുടെ പോഷകനദികളാണ്.',
+                    'കൃഷിക്ക് സമൃദ്ധമായി ജലം നൽകുന്നതിനാൽ കാവേരി തടം "ദക്ഷിണേന്ത്യയുടെ നെല്ലറ" എന്നറിയപ്പെടുന്നു.'
+                ],
+                labelPos: [77.8, 11.5],
+                coords: [
+                    [75.49, 12.38], [76.25, 12.45], [76.68, 12.42], [77.25, 12.22],
+                    [77.77, 12.11], [77.80, 11.79], [77.73, 11.34], [78.15, 10.98],
+                    [78.69, 10.83], [79.38, 10.96], [79.85, 11.14]
+                ]
+            },
+            {
+                id: 'narmada',
+                nameMl: 'നർമ്മദ',
+                fullNameMl: 'നർമ്മദാ നദി',
+                nameEn: 'Narmada',
+                categoryMl: 'ഉപദ്വീപീയ നദി',
+                directionMl: 'പടിഞ്ഞാറോട്ട് ഒഴുകുന്നു',
+                length: '1,312 km',
+                originMl: 'അമർകണ്ഠക് പീഠഭൂമി (മൈക്കല നിരകൾ), മധ്യപ്രദേശ്',
+                mouthMl: 'അറബിക്കടൽ (ഗൾഫ് ഓഫ് ഖംഭത്, ഗുജറാത്ത്)',
+                statesMl: 'മധ്യപ്രദേശ്, മഹാരാഷ്ട്ര, ഗുജറാത്ത്',
+                clueMl: 'വിന്ധ്യ-സത്പുര പർവ്വതനിരകൾക്കിടയിലൂടെ പടിഞ്ഞാറോട്ട് ഒഴുകി അറബിക്കടലിൽ പതിക്കുന്ന ഏറ്റവും വലിയ നദി.',
+                factsMl: [
+                    'ഇന്ത്യയിൽ പടിഞ്ഞാറോട്ട് ഒഴുകി അറബിക്കടലിൽ പതിക്കുന്ന ഏറ്റവും നീളം കൂടിയ ഉപദ്വീപീയ നദിയാണ് നർമ്മദ.',
+                    'വിന്ധ്യ, സത്പുര പർവ്വതനിരകൾക്കിടയിലുള്ള ഭ്രംശതാഴ്‌വരയിലൂടെയാണ് (Rift Valley) നർമ്മദ ഒഴുകുന്നത്.',
+                    'പ്രശസ്തമായ സർദാർ സരോവർ അണക്കെട്ടും (Statue of Unity-ക്ക് സമീപം) ധുവാന്ധർ വെള്ളച്ചാട്ടവും ഈ നദിയിലാണ്.'
+                ],
+                labelPos: [76.8, 22.8],
+                coords: [
+                    [81.76, 22.67], [80.80, 22.85], [79.93, 23.13], [78.80, 22.95],
+                    [77.72, 22.75], [76.75, 22.35], [76.15, 22.24], [74.90, 22.10],
+                    [73.75, 21.83], [72.99, 21.70], [72.58, 21.63]
+                ]
+            },
+            {
+                id: 'tapi',
+                nameMl: 'താപ്തി',
+                fullNameMl: 'താപ്തി നദി (താപി)',
+                nameEn: 'Tapi (Tapti)',
+                categoryMl: 'ഉപദ്വീപീയ നദി',
+                directionMl: 'പടിഞ്ഞാറോട്ട് ഒഴുകുന്നു',
+                length: '724 km',
+                originMl: 'മുൽത്തായി (ബേതുൽ ജില്ല, സത്പുര നിരകൾ), മധ്യപ്രദേശ്',
+                mouthMl: 'അറബിക്കടൽ (സൂറത്തിന് സമീപം, ഗൾഫ് ഓഫ് ഖംഭത്)',
+                statesMl: 'മധ്യപ്രദേശ്, മഹാരാഷ്ട്ര, ഗുജറാത്ത്',
+                clueMl: 'നർമ്മദയ്ക്ക് സമാന്തരമായി തെക്ക് ഭാഗത്തുകൂടി പടിഞ്ഞാറോട്ട് ഒഴുകി സൂറത്തിന് സമീപം അറബിക്കടലിൽ ചേരുന്ന നദി.',
+                factsMl: [
+                    'നർമ്മദയെപ്പോലെ ഭ്രംശതാഴ്‌വരയിലൂടെ പടിഞ്ഞാറോട്ട് ഒഴുകി അറബിക്കടലിൽ പതിക്കുന്ന പ്രധാന നദിയാണ് താപ്തി.',
+                    'മധ്യപ്രദേശിലെ ബേതുൽ ജില്ലയിലുള്ള മുൽത്തായി എന്ന സ്ഥലത്തുനിന്നാണ് ഉത്ഭവിക്കുന്നത്.',
+                    'ഗുജറാത്തിലെ പ്രമുഖ വജ്ര-വസ്ത്ര വ്യാപാര നഗരമായ സൂറത്ത് (Surat) താപ്തി നദിയുടെ തീരത്താണ്.'
+                ],
+                labelPos: [75.4, 21.1],
+                coords: [
+                    [78.25, 21.77], [77.15, 21.50], [76.23, 21.30], [75.78, 21.05],
+                    [74.75, 21.22], [73.59, 21.25], [72.83, 21.17], [72.63, 21.10]
+                ]
+            },
+            {
+                id: 'mahanadi',
+                nameMl: 'മഹാനദി',
+                fullNameMl: 'മഹാനദി',
+                nameEn: 'Mahanadi',
+                categoryMl: 'ഉപദ്വീപീയ നദി',
+                directionMl: 'കിഴക്കോട്ട് ഒഴുകുന്നു',
+                length: '858 km',
+                originMl: 'സിഹാവ കുന്നുകൾ (ധംതരി ജില്ല), ഛത്തീസ്ഗഢ്',
+                mouthMl: 'ബംഗാൾ ഉൾക്കടൽ (പാരാദീപിന് സമീപം, ഒഡീഷ)',
+                statesMl: 'ഛത്തീസ്ഗഢ്, ഒഡീഷ',
+                clueMl: 'ലോകത്തിലെ ഏറ്റവും നീളം കൂടിയ അണക്കെട്ടായ ഹിരാക്കുഡ് (Hirakud Dam) സ്ഥിതി ചെയ്യുന്ന, ഒഡീഷയിലൂടെ ഒഴുകുന്ന നദി.',
+                factsMl: [
+                    'ഛത്തീസ്ഗഢിലെയും ഒഡീഷയിലെയും ഏറ്റവും പ്രധാനപ്പെട്ട നദിയാണ് മഹാനദി.',
+                    'ലോകത്തിലെ ഏറ്റവും നീളം കൂടിയ മണ്ണണക്കെട്ടായ "ഹിരാക്കുഡ് അണക്കെട്ട് (Hirakud Dam)" ഒഡീഷയിലെ സംബൽപൂരിന് സമീപം ഈ നദിയിലാണ്.',
+                    'കട്ടക്ക് നഗരത്തിന് സമീപം വലിയൊരു ഡെൽറ്റ നിർമ്മിച്ച ശേഷമാണ് മഹാനദി ബംഗാൾ ഉൾക്കടലിൽ പതിക്കുന്നത്.'
+                ],
+                labelPos: [84.1, 21.2],
+                coords: [
+                    [81.93, 20.32], [81.49, 20.27], [81.80, 20.90], [82.18, 21.34],
+                    [82.58, 21.72], [83.35, 21.68], [83.87, 21.53], [83.92, 20.84],
+                    [84.60, 20.65], [85.88, 20.46], [86.72, 20.30]
+                ]
+            }
+        ];
+
+        /******************************************************************
+         * 3. WEB AUDIO API SOUND SYNTHESIZER (NO EXTERNAL FILES NEEDED)
+         ******************************************************************/
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                if (type === 'select') {
+                    // Pleasant water droplet / chime sound
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.14);
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                } else if (type === 'correct') {
+                    // Celebratory triad arpeggio
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+                        gain.gain.setValueAtTime(0.18, now + idx * 0.07);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.07);
+                        osc.stop(now + idx * 0.07 + 0.35);
+                    });
+                } else if (type === 'wrong') {
+                    // Gentle low buzz
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(150, now + 0.25);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.28);
+                } else if (type === 'fanfare') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+                    const times = [0, 0.1, 0.2, 0.32, 0.46, 0.58];
+                    notes.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + times[idx]);
+                        gain.gain.setValueAtTime(0.2, now + times[idx]);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + times[idx] + 0.4);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + times[idx]);
+                        osc.stop(now + times[idx] + 0.4);
+                    });
+                }
+            } catch (e) {
+                // Ignore audio errors if blocked by browser autoplay policy
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('iconSoundOn').classList.toggle('hidden', !soundEnabled);
+            document.getElementById('iconSoundOff').classList.toggle('hidden', soundEnabled);
+            if (soundEnabled) playSound('select');
+        }
+
+        /******************************************************************
+         * 4. APPLICATION STATE
+         ******************************************************************/
+        let gameMode = 'explore'; // 'explore' | 'quiz'
+        let activeRiverId = null;
+        let showAllLabels = false;
+        const exploredRivers = new Set();
+
+        // Quiz State
+        let quizQueue = [];
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let quizStreak = 0;
+        let currentQuestionAttempts = 0;
+        let quizAnsweredCurrent = false;
+
+        /******************************************************************
+         * 5. BUILD SVG MAP, TERRAIN & INTERACTIVE RIVER LAYERS
+         ******************************************************************/
+        function initMap() {
+            const indiaLandLayer = document.getElementById('indiaLandLayer');
+            const neighboringLandLayer = document.getElementById('neighboringLandLayer');
+            const terrainHintsLayer = document.getElementById('terrainHintsLayer');
+            const riversLayer = document.getElementById('riversLayer');
+            const labelsLayer = document.getElementById('labelsLayer');
+
+            // 1. Render Sri Lanka & Neighboring Context
+            const sriLankaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            sriLankaPath.setAttribute('d', pointsToLinearPath(sriLankaCoords, true));
+            sriLankaPath.setAttribute('fill', '#112233');
+            sriLankaPath.setAttribute('stroke', '#1e3a5f');
+            sriLankaPath.setAttribute('stroke-width', '1.2');
+            neighboringLandLayer.appendChild(sriLankaPath);
+
+            // Andaman & Nicobar Islands (Geographical representation on right side)
+            const andamanCoords = [
+                [92.8, 13.4], [92.9, 12.6], [92.75, 11.7], [92.5, 10.6], [93.5, 8.2], [93.8, 7.0]
+            ];
+            andamanCoords.forEach(([lon, lat], idx) => {
+                const [cx, cy] = project(lon, lat);
+                const isl = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                isl.setAttribute('cx', cx);
+                isl.setAttribute('cy', cy);
+                isl.setAttribute('rx', idx < 3 ? 4.5 : 3);
+                isl.setAttribute('ry', idx < 3 ? 11 : 6);
+                isl.setAttribute('fill', '#16302b');
+                isl.setAttribute('stroke', '#38bdf8');
+                isl.setAttribute('stroke-width', '0.8');
+                isl.setAttribute('opacity', '0.75');
+                neighboringLandLayer.appendChild(isl);
+            });
+
+            // Lakshadweep Islands (Left side in Arabian Sea)
+            const lakshadweepCoords = [
+                [72.6, 11.5], [72.2, 10.8], [72.8, 10.2], [73.0, 8.3]
+            ];
+            lakshadweepCoords.forEach(([lon, lat]) => {
+                const [cx, cy] = project(lon, lat);
+                const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                dot.setAttribute('cx', cx);
+                dot.setAttribute('cy', cy);
+                dot.setAttribute('r', '2.5');
+                dot.setAttribute('fill', '#38bdf8');
+                dot.setAttribute('opacity', '0.65');
+                neighboringLandLayer.appendChild(dot);
+            });
+
+            // 2. Render India Mainland Polygon
+            const indiaD = pointsToLinearPath(indiaMainlandCoords, true);
+
+            // Outer coastal glow
+            const indiaCoastGlow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            indiaCoastGlow.setAttribute('d', indiaD);
+            indiaCoastGlow.setAttribute('fill', 'none');
+            indiaCoastGlow.setAttribute('stroke', '#0284c7');
+            indiaCoastGlow.setAttribute('stroke-width', '6');
+            indiaCoastGlow.setAttribute('stroke-linejoin', 'round');
+            indiaCoastGlow.setAttribute('opacity', '0.22');
+            indiaLandLayer.appendChild(indiaCoastGlow);
+
+            // Main India landmass path
+            const indiaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            indiaPath.setAttribute('d', indiaD);
+            indiaPath.setAttribute('fill', 'url(#indiaLandGrad)');
+            indiaPath.setAttribute('stroke', '#38bdf8');
+            indiaPath.setAttribute('stroke-width', '1.8');
+            indiaPath.setAttribute('stroke-linejoin', 'round');
+            indiaPath.setAttribute('filter', 'url(#land-shadow)');
+            indiaLandLayer.appendChild(indiaPath);
+
+            // 3. Subtle Mountain Range Arcs (Himalayas & Western Ghats)
+            const himalayaArc = pointsToSmoothRiverPath([
+                [74.5, 34.8], [76.8, 33.2], [79.2, 31.2], [82.5, 29.5], [86.5, 28.3], [90.5, 28.0], [95.0, 28.5]
+            ]);
+            const himPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            himPath.setAttribute('d', himalayaArc);
+            himPath.setAttribute('fill', 'none');
+            himPath.setAttribute('stroke', '#94a3b8');
+            himPath.setAttribute('stroke-width', '3');
+            himPath.setAttribute('stroke-dasharray', '2 8');
+            himPath.setAttribute('stroke-linecap', 'round');
+            himPath.setAttribute('opacity', '0.35');
+            terrainHintsLayer.appendChild(himPath);
+
+            // 4. Render All 10 Rivers with Wide Hit-Area + Glow + Base + Animated Water Flow
+            RIVERS_DATA.forEach((river) => {
+                const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                group.setAttribute('id', `river-group-${river.id}`);
+                group.setAttribute('class', 'river-group');
+                group.dataset.riverId = river.id;
+
+                const mainD = pointsToSmoothRiverPath(river.coords);
+                const branchD = river.branchCoords ? ' ' + pointsToSmoothRiverPath(river.branchCoords) : '';
+                const combinedD = mainD + branchD;
+
+                // a) Outer Glow Path
+                const glowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                glowPath.setAttribute('d', combinedD);
+                glowPath.setAttribute('class', 'river-glow');
+                group.appendChild(glowPath);
+
+                // b) Dark Casing Path for contrast
+                const casingPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                casingPath.setAttribute('d', combinedD);
+                casingPath.setAttribute('class', 'river-casing');
+                group.appendChild(casingPath);
+
+                // c) Base Blue River Path
+                const basePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                basePath.setAttribute('d', combinedD);
+                basePath.setAttribute('class', 'river-base');
+                group.appendChild(basePath);
+
+                // d) Animated Water Flow Path (strokes from Origin -> Sea!)
+                const flowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                flowPath.setAttribute('d', combinedD);
+                flowPath.setAttribute('class', 'river-flow');
+                group.appendChild(flowPath);
+
+                // e) Subtle Origin Dot on the river
+                const [ox, oy] = project(river.coords[0][0], river.coords[0][1]);
+                const originDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                originDot.setAttribute('cx', ox);
+                originDot.setAttribute('cy', oy);
+                originDot.setAttribute('r', '3.2');
+                originDot.setAttribute('fill', '#bae6fd');
+                originDot.setAttribute('opacity', '0.75');
+                originDot.setAttribute('pointer-events', 'none');
+                group.appendChild(originDot);
+
+                // f) Wide Invisible Hit-Area Path (28px stroke-width for effortless touch & click)
+                const hitPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                hitPath.setAttribute('d', combinedD);
+                hitPath.setAttribute('class', 'river-hit');
+                hitPath.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleRiverInteraction(river.id);
+                });
+                group.appendChild(hitPath);
+
+                riversLayer.appendChild(group);
+
+                // 5. Create Floating Label Badge for each river
+                const [lx, ly] = project(river.labelPos[0], river.labelPos[1]);
+                const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                labelGroup.setAttribute('id', `river-label-${river.id}`);
+                labelGroup.setAttribute('class', 'river-label-group');
+                labelGroup.setAttribute('transform', `translate(${lx}, ${ly})`);
+                labelGroup.style.opacity = '0';
+
+                const badgeWidth = Math.max(river.nameMl.length * 10 + 36, 86);
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', -badgeWidth / 2);
+                rect.setAttribute('y', -22);
+                rect.setAttribute('width', badgeWidth);
+                rect.setAttribute('height', 26);
+                rect.setAttribute('rx', 8);
+                rect.setAttribute('fill', '#082f49');
+                rect.setAttribute('fill-opacity', '0.92');
+                rect.setAttribute('stroke', '#22d3ee');
+                rect.setAttribute('stroke-width', '1.5');
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', 0);
+                text.setAttribute('y', -5);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#f0f9ff');
+                text.setAttribute('font-size', '12.5');
+                text.setAttribute('font-weight', '700');
+                text.textContent = river.nameMl;
+
+                labelGroup.appendChild(rect);
+                labelGroup.appendChild(text);
+                labelsLayer.appendChild(labelGroup);
+            });
+        }
+
+        /******************************************************************
+         * 6. RENDER SIDEBAR RIVER BUTTONS
+         ******************************************************************/
+        function renderSidebarButtons() {
+            const grid = document.getElementById('riverButtonsGrid');
+            grid.innerHTML = '';
+
+            RIVERS_DATA.forEach((river, index) => {
+                const isActive = activeRiverId === river.id;
+                const isExplored = exploredRivers.has(river.id);
+
+                const btn = document.createElement('button');
+                btn.id = `sidebar-btn-${river.id}`;
+                btn.onclick = () => handleSidebarRiverClick(river.id);
+                btn.className = `group relative text-left p-2.5 sm:p-3 rounded-2xl border transition-all flex items-center justify-between gap-2 ${
+                    isActive
+                        ? 'glass-card-active text-white'
+                        : 'bg-slate-900/65 hover:bg-slate-800/80 border-slate-700/70 text-slate-200'
+                }`;
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg text-xs font-extrabold flex items-center justify-center shrink-0 ${
+                            isActive
+                                ? 'bg-cyan-400 text-slate-950'
+                                : isExplored
+                                ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'
+                                : 'bg-slate-800 text-cyan-300'
+                        }">
+                            ${isExplored && !isActive ? '✓' : index + 1}
+                        </span>
+                        <div class="truncate">
+                            <div class="font-bold text-xs sm:text-sm leading-tight truncate">${river.nameMl}</div>
+                            <div class="text-[11px] text-cyan-200/70 truncate">${river.nameEn.split(' ')[0]}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-950/60 text-cyan-300 shrink-0">
+                        ${river.length.replace(' km', '')}k
+                    </span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        /******************************************************************
+         * 7. INTERACTION HANDLERS (EXPLORE & QUIZ MODES)
+         ******************************************************************/
+        function handleSidebarRiverClick(riverId) {
+            if (gameMode === 'quiz') {
+                // In quiz mode, clicking sidebar or map both check the answer!
+                handleRiverInteraction(riverId);
+            } else {
+                selectRiverInExploreMode(riverId);
+            }
+        }
+
+        function handleRiverInteraction(riverId) {
+            if (gameMode === 'explore') {
+                selectRiverInExploreMode(riverId);
+            } else {
+                checkQuizAnswer(riverId);
+            }
+        }
+
+        function selectRiverInExploreMode(riverId) {
+            playSound('select');
+            activeRiverId = riverId;
+            exploredRivers.add(riverId);
+
+            // Update progress count
+            document.getElementById('exploredCount').textContent = exploredRivers.size;
+
+            const river = RIVERS_DATA.find((r) => r.id === riverId);
+            if (!river) return;
+
+            // Update Map Status Title
+            document.getElementById('mapStatusTitle').innerHTML = `<span class="text-cyan-300 font-extrabold">${river.fullNameMl}</span> (${river.nameEn})`;
+
+            // Highlight active river on map
+            RIVERS_DATA.forEach((r) => {
+                const grp = document.getElementById(`river-group-${r.id}`);
+                grp.classList.remove('active', 'quiz-correct', 'quiz-wrong');
+                if (r.id === riverId) {
+                    grp.classList.add('active');
+                    // Bring active river to front of riversLayer
+                    grp.parentNode.appendChild(grp);
+                }
+            });
+
+            // Render Origin & Mouth Markers on Map
+            renderOriginAndMouthMarkers(river);
+
+            // Update Floating Labels visibility
+            updateMapLabelsVisibility();
+
+            // Populate Info Card
+            populateRiverInfoCard(river);
+
+            // Refresh Sidebar Buttons
+            renderSidebarButtons();
+        }
+
+        function renderOriginAndMouthMarkers(river) {
+            const markersLayer = document.getElementById('markersLayer');
+            markersLayer.innerHTML = '';
+            if (!river) return;
+
+            const originCoord = river.coords[0];
+            const mouthCoord = river.coords[river.coords.length - 1];
+            const [ox, oy] = project(originCoord[0], originCoord[1]);
+            const [mx, my] = project(mouthCoord[0], mouthCoord[1]);
+
+            // Origin Pulsing Amber Marker
+            const originPulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            originPulse.setAttribute('cx', ox);
+            originPulse.setAttribute('cy', oy);
+            originPulse.setAttribute('r', '9');
+            originPulse.setAttribute('fill', '#fbbf24');
+            originPulse.setAttribute('class', 'pulse-circle');
+            markersLayer.appendChild(originPulse);
+
+            const originCore = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            originCore.setAttribute('cx', ox);
+            originCore.setAttribute('cy', oy);
+            originCore.setAttribute('r', '5.5');
+            originCore.setAttribute('fill', '#fbbf24');
+            originCore.setAttribute('stroke', '#0f172a');
+            originCore.setAttribute('stroke-width', '2');
+            markersLayer.appendChild(originCore);
+
+            // Mouth / Estuary Cyan Ring Marker
+            const mouthPulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            mouthPulse.setAttribute('cx', mx);
+            mouthPulse.setAttribute('cy', my);
+            mouthPulse.setAttribute('r', '10');
+            mouthPulse.setAttribute('fill', '#22d3ee');
+            mouthPulse.setAttribute('class', 'pulse-circle');
+            markersLayer.appendChild(mouthPulse);
+
+            const mouthCore = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            mouthCore.setAttribute('cx', mx);
+            mouthCore.setAttribute('cy', my);
+            mouthCore.setAttribute('r', '5.5');
+            mouthCore.setAttribute('fill', '#083344');
+            mouthCore.setAttribute('stroke', '#22d3ee');
+            mouthCore.setAttribute('stroke-width', '2.5');
+            markersLayer.appendChild(mouthCore);
+        }
+
+        function populateRiverInfoCard(river) {
+            document.getElementById('infoEmptyState').classList.add('hidden');
+            const pop = document.getElementById('infoPopulatedState');
+            pop.classList.remove('hidden');
+
+            document.getElementById('infoRiverBadge').textContent = river.categoryMl;
+            document.getElementById('infoDirectionBadge').textContent = river.directionMl;
+            document.getElementById('infoNameMl').textContent = river.fullNameMl;
+            document.getElementById('infoNameEn').textContent = river.nameEn;
+            document.getElementById('infoLength').textContent = river.length;
+            document.getElementById('infoOrigin').textContent = river.originMl;
+            document.getElementById('infoMouth').textContent = river.mouthMl;
+            document.getElementById('infoStates').textContent = river.statesMl;
+
+            const factsList = document.getElementById('infoFactsList');
+            factsList.innerHTML = river.factsMl
+                .map(
+                    (fact) => `
+                <li class="flex items-start gap-2">
+                    <span class="text-cyan-400 mt-1">•</span>
+                    <span>${fact}</span>
+                </li>`
+                )
+                .join('');
+        }
+
+        function updateMapLabelsVisibility() {
+            RIVERS_DATA.forEach((river) => {
+                const labelEl = document.getElementById(`river-label-${river.id}`);
+                if (!labelEl) return;
+
+                if (gameMode === 'quiz') {
+                    // In quiz mode, only show label if the current question has been answered for that river
+                    const shouldShow = activeRiverId === river.id && quizAnsweredCurrent;
+                    labelEl.style.opacity = shouldShow ? '1' : '0';
+                } else {
+                    const shouldShow = showAllLabels || activeRiverId === river.id;
+                    labelEl.style.opacity = shouldShow ? '1' : '0';
+                }
+            });
+        }
+
+        function toggleAllLabels() {
+            if (gameMode === 'quiz') return; // Disabled during active quiz to prevent giving away answers
+            showAllLabels = !showAllLabels;
+            const txt = document.getElementById('labelToggleText');
+            txt.textContent = showAllLabels ? 'പേരുകൾ മറയ്ക്കുക' : 'പേരുകൾ കാണിക്കുക';
+            playSound('select');
+            updateMapLabelsVisibility();
+        }
+
+        function resetMapSelection() {
+            playSound('select');
+            activeRiverId = null;
+            RIVERS_DATA.forEach((r) => {
+                const grp = document.getElementById(`river-group-${r.id}`);
+                grp.classList.remove('active', 'quiz-correct', 'quiz-wrong');
+            });
+            document.getElementById('markersLayer').innerHTML = '';
+            document.getElementById('mapStatusTitle').textContent = 'ഏതെങ്കിലും നദിയിൽ തൊടുക';
+            document.getElementById('infoEmptyState').classList.remove('hidden');
+            document.getElementById('infoPopulatedState').classList.add('hidden');
+            updateMapLabelsVisibility();
+            renderSidebarButtons();
+        }
+
+        /******************************************************************
+         * 8. GAME MODE & QUIZ ENGINE
+         ******************************************************************/
+        function setGameMode(mode) {
+            playSound('select');
+            gameMode = mode;
+
+            const btnExplore = document.getElementById('btnModeExplore');
+            const btnQuiz = document.getElementById('btnModeQuiz');
+            const quizBanner = document.getElementById('quizPromptBanner');
+            const btnToggleLabels = document.getElementById('btnToggleLabels');
+            const sidebarSubtitle = document.getElementById('sidebarSubtitle');
+
+            if (mode === 'quiz') {
+                btnQuiz.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-md';
+                btnExplore.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-cyan-100/80 hover:text-white';
+                quizBanner.classList.remove('hidden');
+                btnToggleLabels.classList.add('opacity-40', 'pointer-events-none');
+                sidebarSubtitle.textContent = 'ശരിയായ നദി മാപ്പിൽ തൊട്ട് തിരഞ്ഞെടുക്കുക!';
+                startQuizGame();
+            } else {
+                btnExplore.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 shadow-md';
+                btnQuiz.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-cyan-100/80 hover:text-white';
+                quizBanner.classList.add('hidden');
+                btnToggleLabels.classList.remove('opacity-40', 'pointer-events-none');
+                sidebarSubtitle.textContent = 'നദിയിൽ ക്ലിക്ക് ചെയ്ത് മാപ്പിൽ അതിന്റെ വഴി കാണാം';
+                resetMapSelection();
+            }
+        }
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function startQuizGame() {
+            document.getElementById('quizCompleteModal').classList.add('hidden');
+            quizQueue = shuffleArray(RIVERS_DATA);
+            currentQuizIndex = 0;
+            quizScore = 0;
+            quizStreak = 0;
+            updateQuizScoreboard();
+            loadCurrentQuizQuestion();
+        }
+
+        function loadCurrentQuizQuestion() {
+            quizAnsweredCurrent = false;
+            currentQuestionAttempts = 0;
+            activeRiverId = null;
+
+            // Clear river states & markers
+            RIVERS_DATA.forEach((r) => {
+                const grp = document.getElementById(`river-group-${r.id}`);
+                grp.classList.remove('active', 'quiz-correct', 'quiz-wrong');
+            });
+            document.getElementById('markersLayer').innerHTML = '';
+            updateMapLabelsVisibility();
+            renderSidebarButtons();
+
+            const targetRiver = quizQueue[currentQuizIndex];
+            document.getElementById('quizQuestionCounter').textContent = `ചോദ്യം ${currentQuizIndex + 1} / ${quizQueue.length}`;
+            document.getElementById('quizQuestionText').innerHTML = `<span class="text-amber-300">${targetRiver.fullNameMl}</span> (${targetRiver.nameEn}) എവിടെയാണ്? മാപ്പിൽ തൊടുക!`;
+            document.getElementById('quizClueText').textContent = `സൂചന: ${targetRiver.clueMl}`;
+            document.getElementById('mapStatusTitle').textContent = `കണ്ടെത്തുക: ${targetRiver.fullNameMl}`;
+
+            document.getElementById('btnNextQuestion').classList.add('hidden');
+            document.getElementById('quizFeedbackBox').classList.add('hidden');
+            document.getElementById('btnQuizHint').classList.remove('opacity-50', 'pointer-events-none');
+        }
+
+        function checkQuizAnswer(touchedRiverId) {
+            if (quizAnsweredCurrent) {
+                // Allow exploring after answering before clicking Next
+                selectRiverInExploreMode(touchedRiverId);
+                return;
+            }
+
+            const targetRiver = quizQueue[currentQuizIndex];
+            const touchedRiver = RIVERS_DATA.find((r) => r.id === touchedRiverId);
+            const feedbackBox = document.getElementById('quizFeedbackBox');
+            const feedbackText = document.getElementById('quizFeedbackText');
+
+            // Clear previous wrong highlights
+            RIVERS_DATA.forEach((r) => {
+                document.getElementById(`river-group-${r.id}`).classList.remove('quiz-wrong');
+            });
+
+            if (touchedRiverId === targetRiver.id) {
+                // Correct Answer!
+                quizAnsweredCurrent = true;
+                activeRiverId = targetRiver.id;
+                exploredRivers.add(targetRiver.id);
+                document.getElementById('exploredCount').textContent = exploredRivers.size;
+
+                const pointsEarned = currentQuestionAttempts === 0 ? 10 : currentQuestionAttempts === 1 ? 7 : 5;
+                quizScore += pointsEarned;
+                quizStreak += 1;
+                updateQuizScoreboard();
+                playSound('correct');
+
+                const grp = document.getElementById(`river-group-${targetRiver.id}`);
+                grp.classList.add('quiz-correct');
+                grp.parentNode.appendChild(grp);
+
+                renderOriginAndMouthMarkers(targetRiver);
+                updateMapLabelsVisibility();
+                populateRiverInfoCard(targetRiver);
+                renderSidebarButtons();
+
+                feedbackBox.className = 'mt-2.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between bg-emerald-500/20 border border-emerald-400/50 text-emerald-200';
+                feedbackText.innerHTML = `🎉 ശരിയുത്തരം! നിങ്ങൾ <strong>${targetRiver.fullNameMl}</strong> കൃത്യമായി കണ്ടെത്തി! (+${pointsEarned} പോയിന്റ്)`;
+                feedbackBox.classList.remove('hidden');
+
+                const nextBtn = document.getElementById('btnNextQuestion');
+                nextBtn.textContent = currentQuizIndex === quizQueue.length - 1 ? 'ഫലം കാണുക 🏆' : 'അടുത്ത ചോദ്യം →';
+                nextBtn.classList.remove('hidden');
+            } else {
+                // Wrong Answer
+                currentQuestionAttempts += 1;
+                quizStreak = 0;
+                updateQuizScoreboard();
+                playSound('wrong');
+
+                const wrongGrp = document.getElementById(`river-group-${touchedRiverId}`);
+                wrongGrp.classList.add('quiz-wrong');
+                setTimeout(() => {
+                    wrongGrp.classList.remove('quiz-wrong');
+                }, 1100);
+
+                feedbackBox.className = 'mt-2.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between bg-rose-500/20 border border-rose-400/50 text-rose-200';
+                feedbackText.innerHTML = `❌ അത് <strong>${touchedRiver.fullNameMl}</strong> ആണ്! <strong>${targetRiver.fullNameMl}</strong> കണ്ടെത്താൻ വീണ്ടും ശ്രമിക്കൂ.`;
+                feedbackBox.classList.remove('hidden');
+
+                // If 2 wrong tries, automatically pulse the origin of the correct river as a visual hint
+                if (currentQuestionAttempts >= 2) {
+                    showQuizHint();
+                }
+            }
+        }
+
+        function showQuizHint() {
+            if (quizAnsweredCurrent) return;
+            const targetRiver = quizQueue[currentQuizIndex];
+            if (!targetRiver) return;
+
+            playSound('select');
+            const markersLayer = document.getElementById('markersLayer');
+            markersLayer.innerHTML = '';
+
+            // Pulse the origin point of the target river to guide the student
+            const [ox, oy] = project(targetRiver.coords[0][0], targetRiver.coords[0][1]);
+            const hintCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            hintCircle.setAttribute('cx', ox);
+            hintCircle.setAttribute('cy', oy);
+            hintCircle.setAttribute('r', '14');
+            hintCircle.setAttribute('fill', '#fbbf24');
+            hintCircle.setAttribute('class', 'pulse-circle');
+            markersLayer.appendChild(hintCircle);
+
+            const hintCore = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            hintCore.setAttribute('cx', ox);
+            hintCore.setAttribute('cy', oy);
+            hintCore.setAttribute('r', '5');
+            hintCore.setAttribute('fill', '#fbbf24');
+            markersLayer.appendChild(hintCore);
+
+            const feedbackBox = document.getElementById('quizFeedbackBox');
+            const feedbackText = document.getElementById('quizFeedbackText');
+            feedbackBox.className = 'mt-2.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between bg-amber-500/20 border border-amber-400/50 text-amber-200';
+            feedbackText.innerHTML = `💡 സൂചന: മാപ്പിൽ മഞ്ഞ നിറത്തിൽ മിന്നുന്ന ഉത്ഭവ സ്ഥാനം (${targetRiver.originMl.split(',')[0]}) ശ്രദ്ധിക്കൂ!`;
+            feedbackBox.classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            playSound('select');
+            if (currentQuizIndex < quizQueue.length - 1) {
+                currentQuizIndex += 1;
+                loadCurrentQuizQuestion();
+            } else {
+                // Quiz Finished!
+                playSound('fanfare');
+                document.getElementById('modalFinalScore').textContent = `${quizScore} / 100`;
+                const stars = quizScore >= 85 ? '⭐⭐⭐ ഉജ്ജ്വലം!' : quizScore >= 65 ? '⭐⭐ വളരെ നല്ലത്!' : '⭐ നല്ല ശ്രമം!';
+                document.getElementById('modalStars').textContent = stars;
+                document.getElementById('quizCompleteModal').classList.remove('hidden');
+            }
+        }
+
+        function closeModalAndExplore() {
+            document.getElementById('quizCompleteModal').classList.add('hidden');
+            setGameMode('explore');
+        }
+
+        function updateQuizScoreboard() {
+            document.getElementById('quizScoreValue').textContent = quizScore;
+            document.getElementById('quizStreakBadge').textContent = `🔥 തുടർച്ച: ${quizStreak}`;
+        }
+
+        /******************************************************************
+         * 9. INITIALIZE ON WINDOW LOAD
+         ******************************************************************/
+        window.onload = function () {
+            initMap();
+            renderSidebarButtons();
+            // Highlight Ganga initially so the user immediately sees the glowing river animation
+            setTimeout(() => {
+                selectRiverInExploreMode('ganga');
+            }, 300);
+        };
+    </script>
+</body>
+</html>
